@@ -1,0 +1,42 @@
+{
+  "type": "object",
+  "properties": {
+    "device_id": {
+      "type": "string",
+      "description": "Unique identifier for the Raspberry Pi Edge Device.",
+      "dynamodb_key": "PARTITION_KEY"
+    },
+    "timestamp": {
+      "type": "integer",
+      "description": "UTC timestamp in Unix epoch format (seconds). Ensures timezone-independent ordering.",
+      "dynamodb_key": "SORT_KEY"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["ACTIVE", "INACTIVE"],
+      "description": "Operational status based on 230V pump power."
+    },
+    "sensor_voltage": {
+      "type": "integer",
+      "enum": [0, 1],
+      "description": "Raw GPIO input (0=LOW/Active, 1=HIGH/Inactive) for debugging."
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string",
+          "description": "Schema version (e.g., 1.0) for backward compatibility."
+        },
+        "location": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "required": [
+    "device_id",
+    "timestamp",
+    "status"
+  ]
+}
