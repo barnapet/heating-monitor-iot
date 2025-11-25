@@ -1,4 +1,4 @@
-### 🌟 Project Overview: Boiler Status Monitor (AWS IoT Edge)
+# 🌟 Project Overview: Boiler Status Monitor (AWS IoT Edge)
 
 ## 🎯 Key Engineering Goals
 
@@ -11,6 +11,7 @@ a solid-fuel boiler by monitoring the power status of its circulation pump.
 
 The project utilizes an event-driven IoT pipeline to monitor the boiler's status in real-time and provide alerts.
 
+```mermaid
 flowchart TD
     subgraph Edge_Layer [Edge Layer - Home]
         Pump[Solid-Fuel Boiler Pump 230V] -- 230V AC --> Opto[MVPDM-1PHS Module]
@@ -50,7 +51,7 @@ flowchart TD
     class IoT,Lambda,DynamoDB,Rule_Alert,Rule_Store aws;
     class Pi,Opto,Pump edge;
     class Telegram_API ext;
-	
+```	
 	
 ## 🛠️ Technologies Used
 
