@@ -2,14 +2,17 @@
 
 ## 🎯 Key Engineering Goals
 
-This project demonstrates a robust, cost-optimized, and event-driven Internet of Things (IoT) pipeline 
-designed to monitor a dual home heating system. The core function is to detect the operational state of 
-a solid-fuel boiler by monitoring the power status of its circulation pump.
+This project focuses on building a reliable and cost‑efficient IoT solution for monitoring a dual home 
+heating system. Its primary goal is to detect the operational state of a solid‑fuel boiler by observing 
+the power status of its circulation pump, enabling timely alerts and data collection for later analysis.
 
 
 ## 📐 Architecture Design (System Design)
 
-The project utilizes an event-driven IoT pipeline to monitor the boiler's status in real-time and provide alerts.
+The system is built as an event‑driven IoT pipeline using AWS IoT Core, where the edge device publishes 
+status updates in real time. Incoming messages trigger cloud‑side components—such as Lambda functions 
+for alerting and DynamoDB for long‑term storage—ensuring both immediate notifications and structured 
+historical data.
 
 ```mermaid
 flowchart TD
