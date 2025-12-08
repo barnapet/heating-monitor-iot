@@ -25,7 +25,7 @@ CONFIG_PATH = os.path.join(CERTS_DIR, 'iot_config.json')
 
 # GPIO Pin (BCM numbering)
 PUMP_PIN = 17
-HEARTBEAT_INTERVAL = 300  # 5 minutes in seconds
+HEARTBEAT_INTERVAL = 86 400
 
 
 class HeatingMonitor:
@@ -82,19 +82,29 @@ class HeatingMonitor:
     def publish_status(self, status, reason="heartbeat"):
         """Sends the payload to AWS IoT Core"""
         timestamp = int(time.time())
+        
+        # --- MÓDOSÍTÁS KEZDETE ---
+        # Ha ez egy heartbeat üzenet, ne írjuk ki, hogy INACTIVE, 
+        # hanem használjunk egy barátságosabb jelzést.
+        display_status = status
+        if reason == "heartbeat":
+            display_status = "HEARTBEAT_OK" 
+        # --- MÓDOSÍTÁS VÉGE ---
+
         payload = {
             "device_id": self.device_id,
             "timestamp": timestamp,
-            "status": status,
+            "status": display_status,       # Itt a módosított státuszt küldjük
+            "real_state": status,           # De megtartjuk az igazit is (technikai adat)
             "sensor_voltage": 1 if status == "ACTIVE" else 0,
             "metadata": {
                 "location": "Boiler Room",
                 "reason": reason,
-                "version": "1.0"
+                "version": "1.1" # Verziót emeltem :)
             }
         }
 
-        print(f"📡 Sending [{reason}]: {status}...")
+        print(f"📡 Sending [{reason}]: {display_status} (Real: {status})...")
 
         self.mqtt_connection.publish(
             topic=self.topic,
