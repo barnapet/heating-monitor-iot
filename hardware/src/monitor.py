@@ -21,7 +21,7 @@ CERTS_DIR = os.path.join(BASE_DIR, 'certs')
 CONFIG_PATH = os.path.join(CERTS_DIR, 'iot_config.json')
 
 PUMP_PIN = 17
-HEARTBEAT_INTERVAL = 86 400
+HEARTBEAT_INTERVAL = 86400
 
 
 class HeatingMonitor:

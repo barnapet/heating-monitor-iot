@@ -1,0 +1,42 @@
+name: Quality Assurance
+
+on:
+  push:
+    branches: [ "main", "master", "feature/*" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.9"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 pytest aws-cdk-lib
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        if [ -f hardware/requirements.txt ]; then pip install -r hardware/requirements.txt; fi
+
+    - name: Lint with flake8
+      run: |
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+    - name: Run Unit Tests
+      run: |
+        if [ -d tests ]; then pytest tests/; else echo "No tests folder found"; fi
+      
+    - name: Run All Tests
+      run: |
+        pytest infrastructure/tests/
+        
+        pip install -r infrastructure/lambda_functions/notifier/requirements.txt
+        pytest infrastructure/lambda_functions/notifier/tests/
