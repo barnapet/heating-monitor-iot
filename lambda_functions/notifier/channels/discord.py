@@ -1,4 +1,3 @@
-import os
 import json
 import logging
 import urllib.request
@@ -8,8 +7,8 @@ from .base import NotificationChannel
 logger = logging.getLogger()
 
 class DiscordNotifier(NotificationChannel):
-    def __init__(self):
-        self.webhook_url = os.environ.get('SSM_KEY_DISCORD_WEBHOOK')
+    def __init__(self, webhook_url: str):
+        self.webhook_url = webhook_url
 
     def send(self, message: str) -> bool:
         if not self.webhook_url:

@@ -10,6 +10,9 @@ SSM_PARAM_NAME_TOKEN = "/heating-monitor/telegram-token"
 SSM_PARAM_NAME_CHAT_ID = "/heating-monitor/telegram-chat-id"
 SSM_PARAM_NAME_DISCORD_WEBHOOK = "/heating-monitor/discord-webhook-url"
 
+DATA_RETENTION_DAYS = 90
+TTL_OFFSET_SECONDS = DATA_RETENTION_DAYS * 24 * 60 * 60
+
 class HeatingMonitorStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
@@ -64,9 +67,15 @@ class HeatingMonitorStack(Stack):
         # 4. IoT Rules
         iot_dynamodb_role = self._get_or_create_iot_role()
         
-        # Cold Path Rule: Store all data in DynamoDB
-        iot.CfnTopicRule(self, "DynamoDBStorageRule", topic_rule_payload=iot.CfnTopicRule.TopicRulePayloadProperty(
-            sql="SELECT device_id, timestamp, status, sensor_voltage, metadata FROM 'home/heating/status'",
+        iot_sql_query = (
+            f"SELECT device_id, timestamp, status, sensor_voltage, metadata, "
+            f"(timestamp() / 1000) + {TTL_OFFSET_SECONDS} as ttl "
+            f"FROM 'home/heating/status'"
+        )
+
+        iot.CfnTopicRule(self, "DynamoDBStorageRule", 
+            topic_rule_payload=iot.CfnTopicRule.TopicRulePayloadProperty(
+            sql=iot_sql_query,
             actions=[
                 iot.CfnTopicRule.ActionProperty(
                     dynamo_d_bv2=iot.CfnTopicRule.DynamoDBv2ActionProperty(

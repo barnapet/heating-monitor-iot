@@ -1,4 +1,3 @@
-import os
 import json
 import logging
 import urllib.request
@@ -8,9 +7,9 @@ from .base import NotificationChannel
 logger = logging.getLogger()
 
 class TelegramNotifier(NotificationChannel):
-    def __init__(self):
-        self.token = os.environ.get('SSM_KEY_TOKEN')
-        self.chat_id = os.environ.get('SSM_KEY_CHAT_ID')
+    def __init__(self, token: str, chat_id: str):
+        self.token = token
+        self.chat_id = chat_id
 
     def send(self, message: str) -> bool:
         if not self.token or not self.chat_id:
