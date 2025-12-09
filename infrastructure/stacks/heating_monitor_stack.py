@@ -1,4 +1,5 @@
 import aws_cdk as cdk
+import os
 from aws_cdk import (
     Stack, Duration, aws_sqs as sqs, aws_dynamodb as dynamodb,
     aws_lambda as _lambda, aws_iot as iot, aws_iam as iam,
@@ -31,6 +32,9 @@ class HeatingMonitorStack(Stack):
             removal_policy=cdk.RemovalPolicy.RETAIN,
             time_to_live_attribute="ttl"
         )
+        
+        this_dir = os.path.dirname(os.path.abspath(__file__))
+        lambda_path = os.path.join(this_dir, "..", "lambda_functions", "notifier")
         
         # 3. Lambda Function (Hot Path - Alerting)
         self.notifier_lambda = _lambda.Function(self, "TelegramNotifierFunction",
