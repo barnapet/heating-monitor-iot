@@ -25,7 +25,8 @@ class HeatingMonitorStack(Stack):
             partition_key=dynamodb.Attribute(name="device_id", type=dynamodb.AttributeType.STRING),
             sort_key=dynamodb.Attribute(name="timestamp", type=dynamodb.AttributeType.NUMBER),
             billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,
-            removal_policy=cdk.RemovalPolicy.RETAIN
+            removal_policy=cdk.RemovalPolicy.RETAIN,
+            time_to_live_attribute="ttl"
         )
         
         # 3. Lambda Function (Hot Path - Alerting)
