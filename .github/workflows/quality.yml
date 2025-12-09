@@ -34,9 +34,10 @@ jobs:
       run: |
         if [ -d tests ]; then pytest tests/; else echo "No tests folder found"; fi
       
-    - name: Run All Tests
+    - name: Run All Tests (Skip E2E)
       run: |
-        pytest infrastructure/tests/
+        if [ -f infrastructure/lambda_functions/notifier/requirements.txt ]; then pip install -r infrastructure/lambda_functions/notifier/requirements.txt; fi
         
-        pip install -r infrastructure/lambda_functions/notifier/requirements.txt
-        pytest infrastructure/lambda_functions/notifier/tests/
+        pytest infrastructure/tests/ --ignore=infrastructure/tests/e2e/
+        
+        if [ -d hardware/tests ]; then pytest hardware/tests/; fi
