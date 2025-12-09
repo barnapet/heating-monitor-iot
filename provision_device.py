@@ -9,7 +9,6 @@ POLICY_NAME = "HeatingSystemPolicy"
 REGION = "eu-west-2"  # London region
 CERTS_DIR = "hardware/certs"
 
-# Initialize AWS IoT Client
 iot_client = boto3.client('iot', region_name=REGION)
 
 def create_directory():
@@ -65,7 +64,6 @@ def create_certificates():
     key_public = response['keyPair']['PublicKey']
     key_private = response['keyPair']['PrivateKey']
 
-    # Save files
     with open(f"{CERTS_DIR}/certificate.pem.crt", "w") as f:
         f.write(certificate_pem)
     with open(f"{CERTS_DIR}/private.pem.key", "w") as f:
@@ -78,11 +76,9 @@ def create_certificates():
 
 def attach_everything(cert_arn):
     """Attaches Policy, Thing, and Cert"""
-    # Attach Policy to Certificate
     iot_client.attach_policy(policyName=POLICY_NAME, target=cert_arn)
     print("Policy attached to certificate")
 
-    # Attach Thing to Certificate
     iot_client.attach_thing_principal(thingName=THING_NAME, principal=cert_arn)
     print("Thing attached to certificate")
 
@@ -98,7 +94,6 @@ def get_iot_endpoint():
     response = iot_client.describe_endpoint(endpointType='iot:Data-ATS')
     endpoint = response['endpointAddress']
     print(f"\nYOUR ENDPOINT (Save it!): {endpoint}")
-    # Save to a config file so the Pi code can find it
     with open(f"{CERTS_DIR}/iot_config.json", "w") as f:
         json.dump({"endpoint": endpoint, "thing_name": THING_NAME}, f, indent=4)
 

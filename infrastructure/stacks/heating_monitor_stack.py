@@ -6,9 +6,9 @@ from aws_cdk import (
 )
 from constructs import Construct
 
-# Constants for Parameter Store keys (names only, NOT values!)
 SSM_PARAM_NAME_TOKEN = "/heating-monitor/telegram-token"
 SSM_PARAM_NAME_CHAT_ID = "/heating-monitor/telegram-chat-id"
+SSM_PARAM_NAME_DISCORD_WEBHOOK = "/heating-monitor/discord-webhook-url"
 
 class HeatingMonitorStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
@@ -38,7 +38,8 @@ class HeatingMonitorStack(Stack):
             retry_attempts=2,
             environment={
                 "SSM_KEY_TOKEN": SSM_PARAM_NAME_TOKEN,
-                "SSM_KEY_CHAT_ID": SSM_PARAM_NAME_CHAT_ID
+                "SSM_KEY_CHAT_ID": SSM_PARAM_NAME_CHAT_ID,
+                "SSM_KEY_DISCORD_WEBHOOK": SSM_PARAM_NAME_DISCORD_WEBHOOK
             }
         )
         self.alert_dlq.grant_send_messages(self.notifier_lambda)
@@ -50,15 +51,19 @@ class HeatingMonitorStack(Stack):
         chat_id_param = ssm.StringParameter.from_string_parameter_attributes(
             self, "TelegramChatIdParam", parameter_name=SSM_PARAM_NAME_CHAT_ID
         )
+        discord_webhook_param = ssm.StringParameter.from_secure_string_parameter_attributes(
+            self, "DiscordWebhookParam", parameter_name=SSM_PARAM_NAME_DISCORD_WEBHOOK
+        )
+        
         token_param.grant_read(self.notifier_lambda)
         chat_id_param.grant_read(self.notifier_lambda)
+        discord_webhook_param.grant_read(self.notifier_lambda)
         # ---------------------------------------------
 
         # 4. IoT Rules
         iot_dynamodb_role = self._get_or_create_iot_role()
         
         # Cold Path Rule: Store all data in DynamoDB
-        # FIX: Wrapped DynamoDBv2ActionProperty inside ActionProperty
         iot.CfnTopicRule(self, "DynamoDBStorageRule", topic_rule_payload=iot.CfnTopicRule.TopicRulePayloadProperty(
             sql="SELECT device_id, timestamp, status, sensor_voltage, metadata FROM 'home/heating/status'",
             actions=[
@@ -73,7 +78,6 @@ class HeatingMonitorStack(Stack):
         self.heating_table.grant_write_data(iot_dynamodb_role)
 
         # Hot Path Rule: Trigger Lambda if status is 'INACTIVE'
-        # FIX: Wrapped LambdaActionProperty inside ActionProperty
         iot_lambda_rule = iot.CfnTopicRule(self, "LambdaAlertRule", topic_rule_payload=iot.CfnTopicRule.TopicRulePayloadProperty(
             sql="SELECT * FROM 'home/heating/status' WHERE status = 'INACTIVE'",
             actions=[

@@ -17,9 +17,9 @@ The Hot Path is designed for **real-time alerting** with minimal latency.
 | Decision | Rationale |
 | :--- | :--- |
 | **Architecture:** Event-Driven (IoT Rule $\rightarrow$ Lambda) | This approach is more **cost-effective** and **faster** than traditional polling mechanisms. The AWS Lambda function only executes (and costs money) when the critical `status = 'INACTIVE'` event is triggered, adhering to the Free Tier constraints. |
-| **Notification Channel:** Telegram API | A third-party API is used via Lambda to send **free** push notifications, avoiding the recurring costs associated with SMS and the development complexity of native mobile push (SNS Mobile Push). |
-| **Security:** Environment Variables & KMS | Sensitive secrets (e.g., Telegram Bot Token) are stored as encrypted **Environment Variables** in Lambda, preventing hardcoded credentials in the source code. |
-| **Fault Tolerance (DLQ):** SQS Dead Letter Queue (DLQ) | An SQS queue is configured as the Lambda function's DLQ. If the Lambda fails repeatedly (e.g., Telegram API is down), the message is routed to the DLQ for manual inspection and reprocessing, ensuring no critical alert is missed. |
+| **Notification System:** **Multi-channel Notification Interface** | **The system implements an Abstract Notification Interface (Strategy Pattern) supporting both Telegram and Discord.** This design adheres to the **Open/Closed Principle**, allowing the system to be easily extended with new channels (e.g., Slack, Email) without modifying the core business logic. It also provides redundancy: if one API fails, the others can still deliver the alert. |
+| **Security:** Environment Variables (SSM) & KMS | Sensitive secrets (Telegram Bot Token, Chat ID, Discord Webhook URL) are injected as **Environment Variables** (retrieved from SSM Parameter Store) into Lambda, preventing hardcoded credentials in the source code. |
+| **Fault Tolerance (DLQ):** SQS Dead Letter Queue (DLQ) | An SQS queue is configured as the Lambda function's DLQ. If the Lambda fails repeatedly (e.g., an external API is down), the message is routed to the DLQ for manual inspection and reprocessing, ensuring no critical alert is missed. |
 | **Lambda Retry Policy:** **Retry Policy set to 3 attempts** | **Standard retry count to account for transient errors before moving the message to the DLQ. Configured via the CDK `on_failure` property.** |
 
 ### 3. Cold Path Architecture (Storage and Analytics)
@@ -37,3 +37,12 @@ The Cold Path is dedicated to durable data storage for future analytics and mach
 | Decision | Rationale |
 | :--- | :--- |
 | **Delivery Method:** AWS Cloud Development Kit (CDK) in Python | CDK is used to define and deploy the entire AWS cloud infrastructure **as code**. This ensures the infrastructure is **version-controlled**, reproducible, and easily updated, aligning with modern DevOps and MLOps practices. |
+
+### 5. Architecture Evolution & Refactoring Log
+
+This section tracks significant architectural changes and the context behind them.
+
+| Date | Change | Driver / Context | Status |
+| :--- | :--- | :--- | :--- |
+| **2025-11-26** | **Initial Design** | Initial Serverless IoT architecture using direct Telegram API integration for alerting. | *Superseded* |
+| **2025-12-09** | **Notification Interface & Multi-Channel Support** | **Refactored the alerting logic to use an Abstract Interface.** Added Discord Webhook support alongside Telegram. This decoupling improves code maintainability and allows for future channel expansions without risking core logic stability. | **Active** |

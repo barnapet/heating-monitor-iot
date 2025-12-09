@@ -29,8 +29,9 @@ flowchart TD
         
         subgraph Hot_Path [Hot Path - Real-time Alerting]
             Rule_Alert{IoT Rule: status = 'INACTIVE'} 
-            Lambda[AWS Lambda: TelegramNotifier]
+            Lambda[AWS Lambda: NotificationService]
             Telegram_API[Telegram API]
+            Discord_API[Discord Webhook]
         end
         
         subgraph Cold_Path [Cold Path - Storage for ML]
@@ -43,6 +44,7 @@ flowchart TD
         
         Rule_Alert -- Trigger --> Lambda
         Lambda --> Telegram_API
+        Lambda --> Discord_API
         
         Rule_Store --> DynamoDB
     end
@@ -53,18 +55,19 @@ flowchart TD
     
     class IoT,Lambda,DynamoDB,Rule_Alert,Rule_Store aws;
     class Pi,Opto,Pump edge;
-    class Telegram_API ext;
-```	
+    class Telegram_API,Discord_API ext;
+```
 	
 ## 🛠️ Technologies Used
 
-| Category          | Technology                | Purpose                                                                 |
-|-------------------|---------------------------|-------------------------------------------------------------------------|
-| Edge Compute      | Raspberry Pi Zero 2 W     | Edge device running the status monitoring Python script.                |
-| Edge Sensing      | MVPDM-1PHS Module         | Safe galvanic isolation and detection of 230V AC pump status.           |
-| Programming       | Python (3.11+)            | Edge logic, Lambda handler, and AWS CDK IaC definition.                 |
-| Cloud Ingestion   | AWS IoT Core              | Secure MQTT Message Broker and Rule Engine.                             |
-| Serverless Logic  | AWS Lambda                | Executing the stateless Telegram notification logic.                    |
-| Alerting          | Telegram Bot API          | Free, reliable, cross-platform push notifications.                      |
-| Data Storage      | Amazon DynamoDB           | Low-latency storage of historical status events for analytics.          |
-| Deployment/DevOps | AWS CDK, GitHub Actions   | Automated deployment of cloud resources (Infrastructure as Code).       |
+| Category | Technology | Purpose |
+| :--- | :--- | :--- |
+| **Edge Compute** | Raspberry Pi Zero 2 W | Edge device running the status monitoring Python script. |
+| **Edge Sensing** | MVPDM-1PHS Module | Safe galvanic isolation and detection of 230V AC pump status. |
+| **Programming** | Python (3.11+) | Edge logic, Lambda handler, and AWS CDK IaC definition. |
+| **Cloud Ingestion** | AWS IoT Core | Secure MQTT Message Broker and Rule Engine. |
+| **Serverless Logic** | AWS Lambda | Executing the stateless multi-channel notification logic. |
+| **Alerting** | Telegram & Discord | Multi-channel push notifications via Bot API and Webhooks. |
+| **Data Storage** | Amazon DynamoDB | Low-latency storage of historical status events for analytics. |
+| **Deployment/DevOps** | AWS CDK, GitHub Actions | Automated deployment of cloud resources (Infrastructure as Code). |
+

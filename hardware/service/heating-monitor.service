@@ -1,21 +1,14 @@
 [Unit]
 Description=Heating Monitor Service
-# Csak akkor induljon el, ha már van hálózat (internet/wifi)
 After=network.target
 
 [Service]
 Type=simple
-# Ez a felhasználó futtatja a programot (fontos a jogok miatt)
 User=barna
-# Itt dolgozik a program (munkakönyvtár)
 WorkingDirectory=/home/barna/heating-monitor
-# A legfontosabb sor: A venv pythonjával indítjuk a main.py-t
 ExecStart=/home/barna/heating-monitor/venv/bin/python /home/barna/heating-monitor/hardware/src/monitor.py
-# Ha leáll vagy összeomlik, indítsa újra...
 Restart=always
-# ...10 másodperc várakozás után.
 RestartSec=10
 
 [Install]
-# Ez mondja meg, hogy többfelhasználós módban (normál induláskor) kell futnia
 WantedBy=multi-user.target
