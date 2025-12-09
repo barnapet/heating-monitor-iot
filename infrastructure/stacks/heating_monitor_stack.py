@@ -34,7 +34,7 @@ class HeatingMonitorStack(Stack):
         )
         
         this_dir = os.path.dirname(os.path.abspath(__file__))
-        lambda_path = os.path.join(this_dir, "..", "lambda_functions", "notifier")
+        lambda_path = os.path.join(this_dir, "..", "..", "lambda_functions", "notifier")        
         
         # 3. Lambda Function (Hot Path - Alerting)
         self.notifier_lambda = _lambda.Function(self, "TelegramNotifierFunction",
