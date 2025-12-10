@@ -207,3 +207,14 @@ marimo/_lsp/
 __marimo__/
 
 hardware/certs/*
+
+# --- Java / Maven ---
+target/
+*.class
+.mvn/wrapper/maven-wrapper.properties
+*.jar
+*.war
+.idea/
+*.iml
+.vscode/
+.DS_Store

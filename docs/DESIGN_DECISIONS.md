@@ -46,3 +46,4 @@ This section tracks significant architectural changes and the context behind the
 | :--- | :--- | :--- | :--- |
 | **2025-11-26** | **Initial Design** | Initial Serverless IoT architecture using direct Telegram API integration for alerting. | *Superseded* |
 | **2025-12-09** | **Notification Interface & Multi-Channel Support** | **Refactored the alerting logic to use an Abstract Interface.** Added Discord Webhook support alongside Telegram. This decoupling improves code maintainability and allows for future channel expansions without risking core logic stability. | **Active** |
+| **2025-12-10** | **Hybrid Cloud Expansion (v2.0)** | **Enterprise DevOps Demo:** Added a Java Spring Boot microservice (Reporting API) and PostgreSQL on Kubernetes. The goal is to demonstrate management of stateful workloads, container orchestration, and hybrid networking alongside the existing Serverless ingestion path. | **In Progress** |
