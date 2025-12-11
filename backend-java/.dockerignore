@@ -1,0 +1,17 @@
+# Git history (felesleges és nagy)
+.git
+.gitignore
+
+# Maven build artifacts (ezt a Docker belül csinálja meg)
+target/
+mvnw
+mvnw.cmd
+.mvn
+
+# IDE beállítások
+.idea
+.vscode
+*.iml
+
+# Logs
+*.log

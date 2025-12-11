@@ -1,0 +1,27 @@
+services:
+  # --- Java Backend Service ---
+  backend:
+    build:
+      context: ./backend-java
+      dockerfile: Dockerfile
+    container_name: heating-backend
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      # Később ide jönnek az DB jelszavak
+    networks:
+      - heating-network
+    restart: unless-stopped
+    # Healthcheck ellenőrzés (hogy a Compose tudja, mikor kész a service)
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # --- (Később ide jön a Postgres és a Python Edge szimulátor) ---
+
+networks:
+  heating-network:
+    driver: bridge
