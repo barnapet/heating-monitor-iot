@@ -1,0 +1,39 @@
+# Container settings
+image:
+  repository: heating-monitor-backend
+  pullPolicy: Never   # IMPORTANT for Minikube: do NOT try to pull from the internet!
+  tag: "v1"
+
+# Number of replicas to run
+replicaCount: 1
+
+# Service configuration (external access)
+service:
+  type: NodePort
+  port: 8080
+  targetPort: 8080
+  nodePort: 30000
+
+# Resource limits (to prevent Java from consuming the whole machine)
+resources:
+  requests:
+    cpu: 250m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+# Health check settings (aligned with Spring Boot Actuator)
+# Using the improved timing values
+livenessProbe:
+  path: /actuator/health/liveness
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 5
+
+readinessProbe:
+  path: /actuator/health/readiness
+  initialDelaySeconds: 40
+  periodSeconds: 10
+  timeoutSeconds: 5
