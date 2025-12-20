@@ -47,3 +47,14 @@ This section tracks significant architectural changes and the context behind the
 | **2025-11-26** | **Initial Design** | Initial Serverless IoT architecture using direct Telegram API integration for alerting. | *Superseded* |
 | **2025-12-09** | **Notification Interface & Multi-Channel Support** | **Refactored the alerting logic to use an Abstract Interface.** Added Discord Webhook support alongside Telegram. This decoupling improves code maintainability and allows for future channel expansions without risking core logic stability. | **Active** |
 | **2025-12-10** | **Hybrid Cloud Expansion (v2.0)** | **Enterprise DevOps Demo:** Added a Java Spring Boot microservice (Reporting API) and PostgreSQL on Kubernetes. The goal is to demonstrate management of stateful workloads, container orchestration, and hybrid networking alongside the existing Serverless ingestion path. | **In Progress** |
+
+### 6. Enterprise Backend Upgrade (v2.0 Decisions)
+
+With the shift to v2.0, the system introduces a containerized backend to demonstrate cloud-agnostic engineering.
+
+| Decision | Rationale |
+| :--- | :--- |
+| **Runtime:** Java 17 + Spring Boot 3 | Selected for its **strict typing**, robust ecosystem, and dominance in enterprise environments. Unlike the Python scripts used at the edge, Java provides better maintainability for complex business logic and data modeling in large-scale teams. |
+| **Orchestration:** Kubernetes (K8s) | Replaced AWS Lambda for the backend API to achieve **provider independence** (No Vendor Lock-in). This demonstrates how the workload can run on AWS EKS, Azure AKS, or on-premise hardware without code changes. |
+| **Persistence:** PostgreSQL (Relational) | While DynamoDB (NoSQL) is excellent for raw event ingestion (Cold Path), PostgreSQL was introduced to handle **structured data** and complex queries, representing a typical "Polyglot Persistence" architecture found in enterprise systems. |
+| **Migration:** Flyway | Adopted **Schema-as-Code** principles. Unlike DynamoDB's schema-less nature, the relational model requires strict version control for database structures to ensure reproducible deployments across environments. |
