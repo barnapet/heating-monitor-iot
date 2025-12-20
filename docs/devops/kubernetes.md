@@ -119,6 +119,20 @@ For this project’s scope, the benefits clearly outweigh the added complexity.
 
 ---
 
+## Production Considerations: Observability Strategy
+
+While this deployment is fully functional on Minikube, a Production environment requires enhanced observability strategies that are explicitly out of scope for this reference implementation.
+
+| Component | Dev / Minikube (Current) | Production Strategy (Recommended) |
+| :--- | :--- | :--- |
+| **Logs** | `kubectl logs` (Ephemeral) | **Centralized Logging (EFK/Loki):** Fluentd/Promtail agents should run as DaemonSets to ship logs to Elasticsearch or Grafana Loki for retention and querying. |
+| **Metrics** | `kubectl top` (Basic resource usage) | **Prometheus + Grafana:** The application exposes `/actuator/prometheus`. A Prometheus Operator should be configured to scrape these endpoints for alerting on JVM memory, GC pauses, and HTTP latency. |
+| **Tracing** | Logs Correlation ID | **Distributed Tracing (Jaeger/Tempo):** Implement OpenTelemetry to trace requests across the microservice boundaries (e.g., Spring Boot $\rightarrow$ Database). |
+
+**Note:** The application already includes `Spring Boot Actuator` and structured JSON logging capability, making it "Observability-Ready" for the tools mentioned above.
+
+---
+
 ## Summary
 
 The Helm-based Kubernetes deployment provides a **robust, repeatable, and environment-agnostic** deployment strategy. By combining declarative configuration, stateless application design, and Kubernetes-native health management, it ensures reliable operation across the full application lifecycle.
