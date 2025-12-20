@@ -2,7 +2,7 @@
 image:
   repository: heating-monitor-backend
   pullPolicy: Never   # IMPORTANT for Minikube: do NOT try to pull from the internet!
-  tag: "v1"
+  tag: "v3"
 
 # Number of replicas to run
 replicaCount: 1
@@ -37,3 +37,20 @@ readinessProbe:
   initialDelaySeconds: 40
   periodSeconds: 10
   timeoutSeconds: 5
+
+# --- PostgreSQL Settings (Sub-chart) ---
+postgresql:
+  enabled: true
+  image:
+    registry: docker.io
+    repository: bitnami/postgresql
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  auth:
+    username: "heating_user"
+    password: "heating_password"
+    database: "heating_db"
+  primary:
+    service:
+      ports:
+        postgresql: 5432

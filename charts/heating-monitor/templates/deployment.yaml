@@ -22,8 +22,19 @@ spec:
             - name: http
               containerPort: {{ .Values.service.targetPort }}
               protocol: TCP
-          
-          # Itt húzzuk be a values.yaml-ből a health check beállításokat
+        
+          env:
+            - name: SPRING_DATASOURCE_URL
+              # Dinamikusan képezzük a service nevet: <release-neve>-postgresql
+              value: "jdbc:postgresql://{{ .Release.Name }}-postgresql:5432/postgres"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "postgres"
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-postgresql
+                  key: postgres-password
+
           livenessProbe:
             httpGet:
               path: {{ .Values.livenessProbe.path }}
