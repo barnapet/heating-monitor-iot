@@ -46,7 +46,8 @@ This section tracks significant architectural changes and the context behind the
 | :--- | :--- | :--- | :--- |
 | **2025-11-26** | **Initial Design** | Initial Serverless IoT architecture using direct Telegram API integration for alerting. | *Superseded* |
 | **2025-12-09** | **Notification Interface & Multi-Channel Support** | **Refactored the alerting logic to use an Abstract Interface.** Added Discord Webhook support alongside Telegram. This decoupling improves code maintainability and allows for future channel expansions without risking core logic stability. | **Active** |
-| **2025-12-10** | **Hybrid Cloud Expansion (v2.0)** | **Enterprise DevOps Demo:** Added a Java Spring Boot microservice (Reporting API) and PostgreSQL on Kubernetes. The goal is to demonstrate management of stateful workloads, container orchestration, and hybrid networking alongside the existing Serverless ingestion path. | **In Progress** |
+| **2025-12-10** | **Hybrid Cloud Expansion (v2.0)** | **Enterprise DevOps Demo:** Added a Java Spring Boot microservice (Reporting API) and PostgreSQL on Kubernetes. The goal is to demonstrate management of stateful workloads, container orchestration, and hybrid networking alongside the existing Serverless ingestion path. | **Completed** |
+| **2025-12-20** | **Resilience Hardening (v2.1)** | **Integrated Resilience4j to protect the Hot Path.** Added Circuit Breaker and Rate Limiter patterns to handle potential downstream latency or outages from Telegram/Discord APIs. | **In Progress** |
 
 ### 6. Enterprise Backend Upgrade (v2.0 Decisions)
 
@@ -58,3 +59,14 @@ With the shift to v2.0, the system introduces a containerized backend to demonst
 | **Orchestration:** Kubernetes (K8s) | Replaced AWS Lambda for the backend API to achieve **provider independence** (No Vendor Lock-in). This demonstrates how the workload can run on AWS EKS, Azure AKS, or on-premise hardware without code changes. |
 | **Persistence:** PostgreSQL (Relational) | While DynamoDB (NoSQL) is excellent for raw event ingestion (Cold Path), PostgreSQL was introduced to handle **structured data** and complex queries, representing a typical "Polyglot Persistence" architecture found in enterprise systems. |
 | **Migration:** Flyway | Adopted **Schema-as-Code** principles. Unlike DynamoDB's schema-less nature, the relational model requires strict version control for database structures to ensure reproducible deployments across environments. |
+
+### 7. System Resilience & Stability (v2.1 Decisions)
+
+As the system evolved into an enterprise-grade backend, ensuring stability during partial failures became a priority.
+
+| Decision | Rationale |
+| :--- | :--- |
+| **Fault Tolerance Library:** Resilience4j | Chosen over legacy Netflix Hystrix for its lightweight, modular design, better support for Java 17+, and seamless integration with the Spring Boot 3 ecosystem. |
+| **Pattern:** Circuit Breaker | Implemented on the `NotificationService` to prevent cascading failures. If external APIs (Discord/Telegram) fail or time out, the circuit opens to protect the backend resources and trigger fallback mechanisms. |
+| **Pattern:** Rate Limiter | Applied to prevent the system from being throttled by external API providers during high-frequency event bursts (e.g., rapid boiler state oscillations). |
+| **Fallback Strategy:** Graceful Degradation | In case of notification failure, the system is designed to log the event as a "Critical Warning" and ensure the Cold Path (Persistence) remains unaffected. |

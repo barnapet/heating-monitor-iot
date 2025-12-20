@@ -69,6 +69,17 @@
 
 ---
 
+## 🛡️ Phase 5: Resilience & Observability Hardening (v2.1)
+
+**Focus:** Enhancing system stability and deep-dive monitoring.
+
+- [ ] **Resilience4j Integration:** Implement Circuit Breaker and Rate Limiter for external Notification APIs.
+- [ ] **Observability Stack:** Deploy Prometheus and Grafana for JVM and Business metrics.
+- [ ] **Contract Testing:** Implement Pact tests between Edge (Python) and Backend (Java).
+- [ ] **Fleet Monitoring:** Add heartbeat telemetry to the Edge layer.
+
+---
+
 ## 🛠 Tech Stack Summary
 * **Language:** Java 17+ (Spring Boot 3), Python 3.9+
 * **Build Tool:** Maven
