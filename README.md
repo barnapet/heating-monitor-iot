@@ -1,73 +1,117 @@
-# 🌟 Project Overview: Boiler Status Monitor (AWS IoT Edge)
+# Heating Monitor IoT
+### End-to-End Edge-to-Cloud Heating Monitoring Platform
 
-## 🎯 Key Engineering Goals
+---
 
-This project focuses on building a reliable and cost‑efficient IoT solution for monitoring a dual home 
-heating system. Its primary goal is to detect the operational state of a solid‑fuel boiler by observing 
-the power status of its circulation pump, enabling timely alerts and data collection for later analysis.
+## One-Sentence Overview
 
+A production-grade IoT reference project demonstrating end-to-end ownership of an edge-to-cloud system, from physical signal detection to a Kubernetes-deployed, cloud-native backend.
 
-## 📐 Architecture Design (System Design)
+---
 
-The system is built as an event‑driven IoT pipeline using AWS IoT Core, where the edge device publishes 
-status updates in real time. Incoming messages trigger cloud‑side components—such as Lambda functions 
-for alerting and DynamoDB for long‑term storage—ensuring both immediate notifications and structured 
-historical data.
+## Why This Project Exists
 
-```mermaid
-flowchart TD
-    subgraph Edge_Layer [Edge Layer - Home]
-        Pump[Solid-Fuel Boiler Pump 230V] -- 230V AC --> Opto[MVPDM-1PHS Module]
-        Opto -- 3.3V Logic --> Pi[Raspberry Pi Zero 2W]
-        Pi -- "Python script (AWS IoT SDK)" --> MQTT_Out(MQTT Topic: home/heating/status)
-    end
+This project solves a real-world engineering problem: **detecting the operational state of a solid-fuel boiler without modifying the boiler itself**.
 
-    subgraph AWS_Cloud [AWS Cloud]
-        IoT[AWS IoT Core]
-        
-        MQTT_Out -.-> |TLS 1.2 / X.509| IoT
-        
-        subgraph Hot_Path [Hot Path - Real-time Alerting]
-            Rule_Alert{IoT Rule: status = 'INACTIVE'} 
-            Lambda[AWS Lambda: NotificationService]
-            Telegram_API[Telegram API]
-            Discord_API[Discord Webhook]
-        end
-        
-        subgraph Cold_Path [Cold Path - Storage for ML]
-            Rule_Store{IoT Rule: All Messages}
-            DynamoDB[(Amazon DynamoDB)]
-        end
-        
-        IoT --> Rule_Alert
-        IoT --> Rule_Store
-        
-        Rule_Alert -- Trigger --> Lambda
-        Lambda --> Telegram_API
-        Lambda --> Discord_API
-        
-        Rule_Store --> DynamoDB
-    end
+Instead of invasive sensors or control-system changes, the system relies on **non-intrusive electrical signal detection at the edge**, combined with **secure cloud ingestion** and a **scalable backend architecture**.
 
-    classDef aws fill:#FF9900,stroke:#232F3E,color:white;
-    classDef edge fill:#232F3E,stroke:#FF9900,color:white;
-    classDef ext fill:#ddd,stroke:#333,color:black;
-    
-    class IoT,Lambda,DynamoDB,Rule_Alert,Rule_Store aws;
-    class Pi,Opto,Pump edge;
-    class Telegram_API,Discord_API ext;
-```
-	
-## 🛠️ Technologies Used
+The goal of the project is not a demo application, but a **production-oriented reference system** that reflects real engineering trade-offs, constraints, and best practices.
 
-| Category | Technology | Purpose |
-| :--- | :--- | :--- |
-| **Edge Compute** | Raspberry Pi Zero 2 W | Edge device running the status monitoring Python script. |
-| **Edge Sensing** | MVPDM-1PHS Module | Safe galvanic isolation and detection of 230V AC pump status. |
-| **Programming** | Python (3.11+) | Edge logic, Lambda handler, and AWS CDK IaC definition. |
-| **Cloud Ingestion** | AWS IoT Core | Secure MQTT Message Broker and Rule Engine. |
-| **Serverless Logic** | AWS Lambda | Executing the stateless multi-channel notification logic. |
-| **Alerting** | Telegram & Discord | Multi-channel push notifications via Bot API and Webhooks. |
-| **Data Storage** | Amazon DynamoDB | Low-latency storage of historical status events for analytics. |
-| **Deployment/DevOps** | AWS CDK, GitHub Actions | Automated deployment of cloud resources (Infrastructure as Code). |
+---
+
+## What This Project Demonstrates
+
+This project demonstrates the ability to:
+
+- Design and implement an **end-to-end distributed system**
+- Own the full lifecycle from **hardware-adjacent edge logic** to **cloud and platform layers**
+- Apply **cloud-native principles** in a pragmatic way
+- Build systems that are **secure, observable, and operable**
+
+It is intentionally structured the way a real production system would be.
+
+---
+
+## High-Level Architecture
+
+The system is composed of clearly separated layers:
+
+- **Edge Layer** – Safe, opto-isolated detection of boiler activity using pump power state
+- **Cloud Ingestion Layer** – Secure, certificate-based MQTT ingestion via AWS IoT Core
+- **Backend Service** – Java-based REST API acting as the system of record for telemetry
+- **Platform Layer** – Kubernetes deployment using Helm, with automated CI/CD
+
+Each layer can evolve independently, reflecting real-world system design.
+
+---
+
+## Key Engineering Highlights
+
+- Non-intrusive hardware design (no boiler modification)
+- Per-device identity using X.509 certificates and TLS
+- Event-driven architecture with clear hot and cold data paths
+- Cloud-native backend with explicit data ownership
+- Kubernetes-ready deployment model
+- Fully automated CI/CD pipeline with immutable artifacts
+
+---
+
+## Technology Stack (Summary)
+
+- **Edge:** Raspberry Pi Zero 2 W, Python
+- **Cloud:** AWS IoT Core, AWS Lambda, DynamoDB
+- **Backend:** Java 17, Spring Boot, PostgreSQL, Flyway
+- **Platform:** Docker, Kubernetes, Helm
+- **CI/CD:** GitHub Actions, GitHub Container Registry
+
+---
+
+## Security Model (High-Level)
+
+- Edge devices authenticate using **unique X.509 certificates**
+- All communication is encrypted using **TLS**
+- No shared credentials between devices
+- Backend services are isolated from direct device access
+- Least-privilege principles applied across cloud and platform layers
+
+---
+
+## How This Project Is Used
+
+This repository is intended as:
+
+- A **technical portfolio project** for senior backend, cloud, or platform roles
+- A reference architecture for **event-driven IoT systems**
+- A demonstration of **production-oriented engineering practices**
+
+Individual components can be run and evaluated independently; detailed technical documentation is provided per layer.
+
+---
+
+## Project Documentation
+
+Each major subsystem is documented separately for clarity:
+
+- **Edge Layer:** Hardware sensing and edge logic
+- **AWS IoT Layer:** Secure ingestion and event routing
+- **Backend Service:** Java API, persistence, and data modeling
+- **Kubernetes Deployment:** Helm charts and runtime configuration
+- **CI/CD Pipeline:** Automated build, test, and delivery
+
+---
+
+## Future Improvements
+
+If extended further, the system could evolve toward:
+
+- Anomaly detection on heating cycles
+- Advanced observability dashboards
+- Cost optimization and data lifecycle policies
+- Fleet-level device management
+
+---
+
+## About This Project
+
+This project was designed and implemented as a **personal, production-oriented reference system** to demonstrate senior-level ownership of cloud-native, distributed architectures.
 
