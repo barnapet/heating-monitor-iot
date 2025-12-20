@@ -23,6 +23,19 @@ resources:
     cpu: 500m
     memory: 512Mi
 
+# --- SECURITY CONTEXT ---
+podSecurityContext:
+  fsGroup: 2000
+
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+# ----------------------------------
+
 # Health check settings (aligned with Spring Boot Actuator)
 # Using the improved timing values
 livenessProbe:
