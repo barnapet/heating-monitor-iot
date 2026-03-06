@@ -1,0 +1,146 @@
+import time
+import json
+import os
+import sys
+import threading
+from datetime import datetime, timezone
+
+from awscrt import io, mqtt, auth, http
+from awsiot import mqtt_connection_builder
+
+try:
+    import RPi.GPIO as GPIO
+    IS_RASPBERRY_PI = True
+except ImportError:
+    IS_RASPBERRY_PI = False
+    print("⚠️  Running on non-Raspberry Pi device (Simulation Mode)")
+
+# --- CONFIGURATION ---
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))  # hardware/
+CERTS_DIR = os.path.join(BASE_DIR, 'certs')
+CONFIG_PATH = os.path.join(CERTS_DIR, 'iot_config.json')
+
+PUMP_PIN = 17
+HEARTBEAT_INTERVAL = 86400
+
+
+class HeatingMonitor:
+    def __init__(self):
+        self.device_id = "heating-pump-pi-01"
+        self.topic = "home/heating/status"
+        self.last_status = "UNKNOWN"
+        self.last_heartbeat = 0
+
+        if not os.path.exists(CONFIG_PATH):
+            raise FileNotFoundError(f"Missing config file: {CONFIG_PATH}. Run provision_device.py first!")
+
+        with open(CONFIG_PATH, 'r') as f:
+            config = json.load(f)
+            self.endpoint = config['endpoint']
+
+        self.mqtt_connection = self._build_connection()
+
+    def _build_connection(self):
+        """Establishes a secure MQTT connection using Mutual TLS"""
+        event_loop_group = io.EventLoopGroup(1)
+        host_resolver = io.DefaultHostResolver(event_loop_group)
+        client_bootstrap = io.ClientBootstrap(event_loop_group, host_resolver)
+
+        mqtt_connection = mqtt_connection_builder.mtls_from_path(
+            endpoint=self.endpoint,
+            cert_filepath=os.path.join(CERTS_DIR, 'certificate.pem.crt'),
+            pri_key_filepath=os.path.join(CERTS_DIR, 'private.pem.key'),
+            client_bootstrap=client_bootstrap,
+            ca_filepath=os.path.join(CERTS_DIR, 'AmazonRootCA1.pem'),
+            client_id=self.device_id,
+            clean_session=False,
+            keep_alive_secs=30
+        )
+        return mqtt_connection
+
+    def setup_gpio(self):
+        """Configures the GPIO pin for input"""
+        if IS_RASPBERRY_PI:
+            GPIO.setmode(GPIO.BCM)
+            GPIO.setup(PUMP_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+        else:
+            print(f"ℹ️  Simulated GPIO setup on pin {PUMP_PIN}")
+
+    def get_pump_status(self):
+        """Reads the physical (or simulated) state"""
+        if IS_RASPBERRY_PI:
+            input_state = GPIO.input(PUMP_PIN)
+            return "ACTIVE" if input_state == GPIO.LOW else "INACTIVE"
+        else:
+            return "INACTIVE"
+
+    def publish_status(self, status, reason="heartbeat"):
+        """Sends the payload to AWS IoT Core"""
+        timestamp = int(time.time())
+        
+        display_status = status
+        if reason == "heartbeat":
+            display_status = "HEARTBEAT_OK" 
+
+        payload = {
+            "device_id": self.device_id,
+            "timestamp": timestamp,
+            "status": display_status,       
+            "real_state": status,          
+            "sensor_voltage": 1 if status == "ACTIVE" else 0,
+            "metadata": {
+                "location": "Boiler Room",
+                "reason": reason,
+                "version": "1.0" 
+            }
+        }
+
+        print(f"📡 Sending [{reason}]: {display_status} (Real: {status})...")
+
+        self.mqtt_connection.publish(
+            topic=self.topic,
+            payload=json.dumps(payload),
+            qos=mqtt.QoS.AT_LEAST_ONCE
+        )
+
+    def run(self):
+        """Main monitoring loop"""
+        print(f"🚀 Heating Monitor started on {self.device_id}")
+        self.setup_gpio()
+
+        # Connect
+        connect_future = self.mqtt_connection.connect()
+        connect_future.result()
+        print("✅ Connected to AWS IoT Core!")
+
+        try:
+            while True:
+                current_status = self.get_pump_status()
+                current_time = time.time()
+
+                # 1. EVENT: Status Changed
+                if current_status != self.last_status:
+                    print(f"⚡ State Change Detected: {self.last_status} -> {current_status}")
+                    self.publish_status(current_status, reason="event_change")
+                    self.last_status = current_status
+
+                # 2. HEARTBEAT: Periodic update
+                elif (current_time - self.last_heartbeat) > HEARTBEAT_INTERVAL:
+                    self.publish_status(current_status, reason="heartbeat")
+                    self.last_heartbeat = current_time
+
+                time.sleep(1)
+
+        except KeyboardInterrupt:
+            print("\n🛑 Stopping monitor...")
+        finally:
+            if IS_RASPBERRY_PI:
+                GPIO.cleanup()
+            disconnect_future = self.mqtt_connection.disconnect()
+            disconnect_future.result()
+            print("👋 Disconnected.")
+
+
+if __name__ == "__main__":
+    monitor = HeatingMonitor()
+    monitor.run()

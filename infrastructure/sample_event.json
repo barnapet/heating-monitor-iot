@@ -1,0 +1,9 @@
+{
+  "device_id": "CLI_TEST_DEVICE",
+  "timestamp": 1733130000,
+  "status": "INACTIVE",
+  "sensor_voltage": 0.0,
+  "metadata": {
+    "location": "Windows Terminal Test"
+  }
+}
