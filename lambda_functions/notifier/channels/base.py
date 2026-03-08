@@ -4,7 +4,7 @@ import urllib.request
 import urllib.error
 from abc import ABC, abstractmethod
 
-logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 class NotificationChannel(ABC):
     @abstractmethod
